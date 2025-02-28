@@ -4,22 +4,24 @@
  * @packageDocumentation
  */
 
-import { type ContractAddress, convert_bigint_to_Uint8Array } from '@midnight-ntwrk/compact-runtime';
-import { type Logger } from 'pino';
-import type { AuctionDerivedState, AuctionContract, AuctionProviders, DeployedAuctionContract } from './common-types.js';
 import {
   type AuctionPrivateState,
   Contract,
   createAuctionPrivateState,
   ledger,
+  parseJwtPayload,
   pureCircuits,
-  witnesses,
   STATE,
+  VCPayload,
+  witnesses,
 } from '@midnight-ntwrk/bboard-contract-tutorial';
-import * as utils from './utils/index.js';
+import { type ContractAddress } from '@midnight-ntwrk/compact-runtime';
 import { deployContract, findDeployedContract } from '@midnight-ntwrk/midnight-js-contracts';
-import { combineLatest, map, tap, from, type Observable } from 'rxjs';
 import { toHex } from '@midnight-ntwrk/midnight-js-utils';
+import { type Logger } from 'pino';
+import { combineLatest, from, map, type Observable, tap } from 'rxjs';
+import type { AuctionContract, AuctionDerivedState, AuctionProviders, DeployedAuctionContract } from './common-types.js';
+import * as utils from './utils/index.js';
 
 /** @internal */
 const auctionContractInstance: AuctionContract = new Contract(witnesses);
@@ -125,11 +127,13 @@ export class AuctionAPI implements DeployedAuctionAPI {
    */
   async placeBid(bid: bigint): Promise<void> {
     this.logger?.info(`placing bid: ${bid}`);
+    const currentTime = BigInt(Math.floor(Date.now() / 1000));
+    console.log(currentTime);
 
     const txData =
       // EXERCISE 3: CALL THE post CIRCUIT AND SUBMIT THE TRANSACTION TO THE NETWORK
       await this.deployedContract.callTx // EXERCISE ANSWER
-        .place_bid(bid); // EXERCISE ANSWER
+        .place_bid(bid, currentTime); // EXERCISE ANSWER
 
     this.logger?.trace({
       transactionAdded: {
@@ -229,7 +233,16 @@ export class AuctionAPI implements DeployedAuctionAPI {
   private static async getPrivateState(providers: AuctionProviders, logger?: Logger): Promise<AuctionPrivateState> {
     const existingPrivateState = await providers.privateStateProvider.get('auctionPrivateState');
     logger?.info(`Existing 'auctionPrivateState' found: ${existingPrivateState ? 'yes' : 'no'}`);
-    const privateState = existingPrivateState ?? createAuctionPrivateState(utils.randomBytes(32));
+    const jwtInfo = parseJwtPayload(utils.rawJwtString());
+    const payload = jwtInfo.payload as VCPayload;
+    logger?.info(`payload: ${payload}`);
+    const issuerPublicKey = await utils.getIssuerPublicKeyFromDid(payload.iss, logger); // Verification key of the issuer
+    logger?.info(`issuerPublicKey: ${issuerPublicKey}`);
+    const ownerPK = {
+      x: BigInt(0), // TODO Get from the wallet
+      y: BigInt(0) // TODO Get from the wallet
+    };
+    const privateState = existingPrivateState ?? createAuctionPrivateState(utils.randomBytes(32), utils.rawJwtString(), ownerPK);
     logger?.info(`Private state 'secret key': ${toHex(privateState.secretKey)}`);
     return privateState;
   }

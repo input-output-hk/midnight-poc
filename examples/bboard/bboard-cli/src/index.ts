@@ -6,19 +6,22 @@
  * of the servers this file relies on.
  */
 
-import { createInterface, type Interface } from 'node:readline/promises';
-import { stdin as input, stdout as output } from 'node:process';
-import { WebSocket } from 'ws';
-import { webcrypto } from 'crypto';
 import {
-  type BBoardProviders,
-  type PrivateStates,
   BBoardAPI,
-  utils,
   type BBoardDerivedState,
+  type BBoardProviders,
   type DeployedBBoardContract,
+  type PrivateStates,
+  utils,
 } from '@midnight-ntwrk/bboard-api';
 import { ledger, type Ledger, STATE } from '@midnight-ntwrk/bboard-contract';
+import { type ContractAddress } from '@midnight-ntwrk/compact-runtime';
+import { type CoinInfo, nativeToken, Transaction, type TransactionId } from '@midnight-ntwrk/ledger';
+import { httpClientProofProvider } from '@midnight-ntwrk/midnight-js-http-client-proof-provider';
+import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
+import { levelPrivateStateProvider } from '@midnight-ntwrk/midnight-js-level-private-state-provider';
+import { getLedgerNetworkId, getZswapNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { NodeZkConfigProvider } from '@midnight-ntwrk/midnight-js-node-zk-config-provider';
 import {
   type BalancedTransaction,
   createBalancedTx,
@@ -26,24 +29,26 @@ import {
   type UnbalancedTransaction,
   type WalletProvider,
 } from '@midnight-ntwrk/midnight-js-types';
-import { type Wallet } from '@midnight-ntwrk/wallet-api';
-import * as Rx from 'rxjs';
-import { type CoinInfo, nativeToken, Transaction, type TransactionId } from '@midnight-ntwrk/ledger';
-import { Transaction as ZswapTransaction } from '@midnight-ntwrk/zswap';
-import { NodeZkConfigProvider } from '@midnight-ntwrk/midnight-js-node-zk-config-provider';
-import { type Resource, WalletBuilder } from '@midnight-ntwrk/wallet';
-import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
-import { httpClientProofProvider } from '@midnight-ntwrk/midnight-js-http-client-proof-provider';
-import { type Logger } from 'pino';
-import { type Config, StandaloneConfig } from './config.js';
-import type { StartedDockerComposeEnvironment, DockerComposeEnvironment } from 'testcontainers';
-import { levelPrivateStateProvider } from '@midnight-ntwrk/midnight-js-level-private-state-provider';
-import { type ContractAddress } from '@midnight-ntwrk/compact-runtime';
 import { toHex } from '@midnight-ntwrk/midnight-js-utils';
-import { getLedgerNetworkId, getZswapNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { type Resource, WalletBuilder } from '@midnight-ntwrk/wallet';
+import { type Wallet } from '@midnight-ntwrk/wallet-api';
+import { Transaction as ZswapTransaction } from '@midnight-ntwrk/zswap';
+import { webcrypto } from 'crypto';
+import { stdin as input, stdout as output } from 'node:process';
+import { createInterface, type Interface } from 'node:readline/promises';
+import { type Logger } from 'pino';
+import * as Rx from 'rxjs';
+import type { DockerComposeEnvironment, StartedDockerComposeEnvironment } from 'testcontainers';
+import { WebSocket } from 'ws';
+import { type Config, StandaloneConfig } from './config.js';
 
-// @ts-expect-error: It's needed to make Scala.js and WASM code able to use cryptography
-globalThis.crypto = webcrypto;
+// globalThis.crypto = webcrypto;
+// Check if crypto is not already defined
+if (!globalThis.crypto) {
+  // @ts-ignore - TypeScript might complain about this
+  // @ts-expect-error: It's needed to make Scala.js and WASM code able to use cryptography
+  globalThis.crypto = webcrypto;
+}
 
 // @ts-expect-error: It's needed to enable WebSocket usage through apollo
 globalThis.WebSocket = WebSocket;
@@ -429,7 +434,7 @@ export const run = async (config: Config, logger: Logger, dockerEnv?: DockerComp
             logger.info('Goodbye');
             process.exit(0);
           }
-        } catch (e) {}
+        } catch (e) { }
       }
     }
   }

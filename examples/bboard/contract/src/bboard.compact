@@ -2,10 +2,10 @@ include "std";
 
 export enum STATE { vacant, occupied }
 
-export ledger state: Cell<STATE>;
-export ledger message: Cell<Maybe<Opaque<"string">>>;
+export ledger state: STATE;
+export ledger message: Maybe<Opaque<"string">>;
 export ledger instance: Counter;
-export ledger poster: Cell<Bytes<32>>;
+export ledger poster: Bytes<32>;
 
 constructor() {
     state = STATE.vacant;
@@ -15,10 +15,10 @@ constructor() {
 
 witness local_secret_key(): Bytes<32>;
 
-export circuit post(new_message: Opaque<"string">): Void {
+export circuit post(new_message: Opaque<"string">): [] {
     assert state == STATE.vacant
         "Attempted to post to an occupied board";
-    poster = public_key(local_secret_key(), instance as Field as Bytes<32>);
+    poster = disclose(public_key(local_secret_key(), instance as Field as Bytes<32>));
     message = some<Opaque<"string">>(new_message);
     state = STATE.occupied;
 }

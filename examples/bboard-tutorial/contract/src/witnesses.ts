@@ -3,8 +3,8 @@
  * as well as the single witness function that accesses it.
  */
 
-import { Ledger } from './managed/auction/contract/index.cjs';
-import { WitnessContext } from '@midnight-ntwrk/compact-runtime';
+import { CurvePoint, WitnessContext } from '@midnight-ntwrk/compact-runtime';
+import { CompactCredential, Ledger } from './managed/auction/contract/index.cjs';
 
 /* **********************************************************************
  * The only hidden state needed by the bulletin board contract is
@@ -17,12 +17,53 @@ import { WitnessContext } from '@midnight-ntwrk/compact-runtime';
 export type AuctionPrivateState = {
   // EXERCISE 1a: FILL IN A REPRESENTATION OF THE PRIVATE STATE
   readonly secretKey: Uint8Array;
+  readonly jwt: string;
+  readonly ownerPK: CurvePoint;
+  //readonly issuerPK: CurvePoint; // TODO issuerPK
 };
 
-export const createAuctionPrivateState = (secretKey: Uint8Array) => ({
+export type JWTInfo = {
+  readonly header: Record<string, unknown>;
+  readonly payload: Record<string, unknown>;
+  readonly signature: string;
+};
+
+export type VCPayload = {
+  vc: {
+    credentialSubject: {
+      birthDate: string;
+      nationalId: string;
+      givenName: string;
+      familyName: string;
+      id: string;
+    };
+  };
+  iss: string;
+  nbf: number;
+  exp: number;
+};
+
+
+export const createAuctionPrivateState = (secretKey: Uint8Array, jwt: string, ownerPK: CurvePoint) => ({
   // EXERCISE 1b: INITIALIZE THE OBJECT OF TYPE BBoardPrivateState
   secretKey,
+  jwt,
+  ownerPK,
 });
+
+
+export const parseJwtPayload = (jwt: string): JWTInfo => {
+  const [headerBase64, payloadBase64, signatureBase64] = jwt.split('.');
+  const header = Buffer.from(headerBase64, 'base64').toString();
+  const payload = Buffer.from(payloadBase64, 'base64').toString();
+  const jwtInfo: JWTInfo = {
+    header: JSON.parse(header),
+    payload: JSON.parse(payload),
+    signature: signatureBase64
+  };
+
+  return jwtInfo;
+}
 
 /* **********************************************************************
  * The witnesses object for the bulletin board contract is an object
@@ -51,10 +92,54 @@ export const createAuctionPrivateState = (secretKey: Uint8Array) => ({
  * from the WitnessContext, so it uses the parameter notation that puts
  * only the binding for the privateState in scope.
  */
+
 export const witnesses = {
   local_secret_key: ({ privateState }: WitnessContext<Ledger, AuctionPrivateState>): [AuctionPrivateState, Uint8Array] => [
     // EXERCISE 2: WHAT ARE THE CORRECT TWO VALUES TO RETURN HERE?
     privateState,
     privateState.secretKey,
   ],
+
+  // get_jwt: ({ privateState }: WitnessContext<Ledger, AuctionPrivateState>): [AuctionPrivateState, string] => [
+  //   privateState,
+  //   privateState.jwt,
+  // ],
+
+
+  // get_birth_date_epoch: ({ privateState }: WitnessContext<Ledger, AuctionPrivateState>): [AuctionPrivateState, bigint] => {
+  //   const jwtInfo = witnesses.parse_jwt_payload(privateState.jwt);
+  //   const birthDateStr = (jwtInfo.payload as VCPayload).vc.credentialSubject.birthDate;
+  //   const epochSeconds = Math.floor(new Date(birthDateStr).getTime() / 1000);
+
+  //   return [privateState, BigInt(epochSeconds)];
+  // },
+
+  get_credential_from_jwt: ({ privateState }: WitnessContext<Ledger, AuctionPrivateState>): [AuctionPrivateState, CompactCredential] => {
+    const jwtInfo: JWTInfo = parseJwtPayload(privateState.jwt);
+    const payload = jwtInfo.payload as VCPayload;
+    const subject = payload.vc.credentialSubject;
+
+    const credential: CompactCredential = {
+      firstName: new Uint8Array(Buffer.from(subject.givenName.padEnd(80, ' '))),
+      lastName: new Uint8Array(Buffer.from(subject.familyName.padEnd(80, ' '))),
+      birthDate: BigInt(Math.floor(new Date(subject.birthDate).getTime() / 1000)),
+      nationalId: BigInt(subject.nationalId),
+      issuer: new Uint8Array(Buffer.from(payload.iss.padEnd(86, ' '))),
+      ownerPk: {
+        x: BigInt(privateState.ownerPK.x),
+        y: BigInt(privateState.ownerPK.y)
+      }
+    };
+
+    console.log('Resolved Credential:', {
+      ...credential,
+      ownerPk: {
+        x: credential.ownerPk.x.toString(),
+        y: credential.ownerPk.y.toString()
+      }
+    });
+
+    return [privateState, credential];
+  }
+
 };

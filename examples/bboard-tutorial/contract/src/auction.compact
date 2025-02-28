@@ -2,14 +2,23 @@ include "std";
 
 export enum STATE { opened, concluded }
 
-export ledger auction_state: Cell<STATE>;
-export ledger item_description: Cell<Opaque<"string">>;
-export ledger minimum_bid: Cell<Uint<32>>;
-export ledger bid_increment: Cell<Uint<32>>;
-export ledger current_bid: Cell<Maybe<Uint<32>>>;
-export ledger current_bidder: Cell<Maybe<Bytes<32>>>;
-export ledger reserve_price: Cell<Uint<32>>;
-export ledger item_seller: Cell<Bytes<32>>;
+export ledger item_seller: Bytes<32>;
+export ledger auction_state: STATE;
+export ledger item_description: Opaque<"string">;
+export ledger minimum_bid: Uint<32>;
+export ledger bid_increment: Uint<32>;
+export ledger current_bid: Maybe<Uint<32>>;
+export ledger current_bidder: Maybe<Bytes<32>>;
+export ledger reserve_price: Uint<32>;
+
+export struct CompactCredential {
+    firstName:  Bytes<80>;
+    lastName:   Bytes<80>;
+    birthDate:  Uint<32>;
+    nationalId: Uint<32>;
+    issuer:     Bytes<86>; //prism short form of did
+    ownerPk:    CurvePoint;
+}
 
 constructor(_item_description: Opaque<"string">, _minimum_bid: Uint<32>, _bid_increment: Uint<32>, _reserve_price: Uint<32>) {
     assert _reserve_price >= _minimum_bid 
@@ -23,17 +32,21 @@ constructor(_item_description: Opaque<"string">, _minimum_bid: Uint<32>, _bid_in
     bid_increment = _bid_increment;
     // Q: How can we keep this next one private???
     reserve_price = _reserve_price;
-    item_seller = public_key(local_secret_key());
+    item_seller = disclose(public_key(local_secret_key()));
 }
 
 witness local_secret_key(): Bytes<32>;
+// witness get_birth_date_epoch(): Field;
+// witness get_jwt(): Opaque<"string">;
+witness get_credential_from_jwt(): CompactCredential;
 
-export circuit place_bid(new_bid: Uint<32>): Void {
+export circuit place_bid(new_bid: Uint<32>, currentTime: Uint<64>): [] {
     assert auction_state == STATE.opened
         "Attempted to bid on a concluded auction";
 
     const bidder_pub_key = public_key(local_secret_key());
-
+    const credential = get_credential_from_jwt();
+    const birthDateFromVC = credential.birthDate;
     assert item_seller != bidder_pub_key
         "Can't place a bid as the auction seller";
 
@@ -49,15 +62,16 @@ export circuit place_bid(new_bid: Uint<32>): Void {
     //assert birthDateFromVC >= 18
     //    "The bidder's age must be equal to or greater than 18"
 
+
     current_bid = some<Uint<32>>(new_bid);
-    current_bidder = some<Bytes<32>>(bidder_pub_key);
+    current_bidder = disclose(some<Bytes<32>>(bidder_pub_key));
 
     // Q: How do we implement this knowing tht the reserve price should be private?
     if (new_bid >= reserve_price)
         auction_state = STATE.concluded;
 }
 
-export circuit conclude_auction(): Void {
+export circuit conclude_auction(): [] {
     assert auction_state == STATE.opened
         "Attempted to conclude an auction that has already been concluded";
 
