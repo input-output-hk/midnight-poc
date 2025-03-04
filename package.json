@@ -2,7 +2,12 @@
   "packageManager": "yarn@4.1.0",
   "workspaces": [
     "compact",
-    "auction/*"
+    "examples/*",
+    "examples/welcome/*",
+    "examples/counter/*",
+    "examples/bboard/*",
+    "examples/bboard-tutorial/*",
+    "examples/auction/*"
   ],
   "scripts": {
     "compact": "turbo run compact",
