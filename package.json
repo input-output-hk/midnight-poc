@@ -3,10 +3,7 @@
   "workspaces": [
     "compact",
     "examples/*",
-    "examples/welcome/*",
-    "examples/counter/*",
     "examples/bboard/*",
-    "examples/bboard-tutorial/*",
     "examples/auction/*"
   ],
   "scripts": {
