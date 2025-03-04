@@ -2,11 +2,7 @@
   "packageManager": "yarn@4.1.0",
   "workspaces": [
     "compact",
-    "examples/*",
-    "examples/welcome/*",
-    "examples/counter/*",
-    "examples/bboard/*",
-    "examples/bboard-tutorial/*"
+    "auction/*"
   ],
   "scripts": {
     "compact": "turbo run compact",
@@ -39,8 +35,10 @@
     "@midnight-ntwrk/midnight-js-utils": "0.2.5",
     "@midnight-ntwrk/wallet": "^3.6.3",
     "@midnight-ntwrk/wallet-api": "^3.4.2",
+    "@types/jsonwebtoken": "^9.0.9",
     "fp-ts": "^2.16.1",
     "io-ts": "^2.2.20",
+    "jsonwebtoken": "^9.0.2",
     "pino": "^8.16.0",
     "pino-pretty": "^10.2.3",
     "rxjs": "^7.8.1"
