@@ -24,6 +24,10 @@ import { combineLatest, from, map, type Observable, tap } from 'rxjs';
 import type { AuctionContract, AuctionDerivedState, AuctionProviders, DeployedAuctionContract } from './common-types.js';
 import * as utils from './utils/index.js';
 import { verifyJWT } from './utils/jwt-verification.js';
+import {
+    sha512
+} from '@noble/hashes/sha512'
+import InMemory from '@pluto-encrypted/inmemory';
 
 /** @internal */
 const auctionContractInstance: AuctionContract = new Contract(witnesses);
@@ -62,6 +66,7 @@ export class AuctionAPI implements DeployedAuctionAPI {
     public readonly deployedContract: DeployedAuctionContract,
     providers: AuctionProviders,
     private readonly logger?: Logger,
+    private readonly credential?: SDK.Domain.Credential
   ) {
     this.deployedContractAddress = deployedContract.deployTxData.public.contractAddress;
     this.state$ = combineLatest(
@@ -179,7 +184,7 @@ export class AuctionAPI implements DeployedAuctionAPI {
    * @returns A `Promise` that resolves with a {@link AuctionAPI} instance that manages the newly deployed
    * {@link DeployedAuctionContract}; or rejects with a deployment error.
    */
-  static async deploy(providers: AuctionProviders, args: [_item_description: string, _minimum_bid: bigint, _bid_increment: bigint, _reserve_price: bigint], logger?: Logger): Promise<AuctionAPI> {
+  static async deploy(providers: AuctionProviders, args: [_item_description: string, _minimum_bid: bigint, _bid_increment: bigint, _reserve_price: bigint], credential: SDK.Domain.Credential, logger?: Logger): Promise<AuctionAPI> {
     logger?.info('deployContract');
 
     // EXERCISE 5: FILL IN THE CORRECT ARGUMENTS TO deployContract
@@ -187,7 +192,7 @@ export class AuctionAPI implements DeployedAuctionAPI {
       // EXERCISE ANSWER
       privateStateKey: 'auctionPrivateState', // EXERCISE ANSWER
       contract: auctionContractInstance,
-      initialPrivateState: await AuctionAPI.getPrivateState(providers, logger),
+      initialPrivateState: await AuctionAPI.getPrivateState(providers, credential, logger),
       args: args
     });
 
@@ -209,7 +214,7 @@ export class AuctionAPI implements DeployedAuctionAPI {
    * @returns A `Promise` that resolves with a {@link AuctionAPI} instance that manages the joined
    * {@link DeployedAuctionContract}; or rejects with an error.
    */
-  static async join(providers: AuctionProviders, contractAddress: ContractAddress, logger?: Logger): Promise<AuctionAPI> {
+  static async join(providers: AuctionProviders, contractAddress: ContractAddress, credential: SDK.Domain.Credential, logger?: Logger): Promise<AuctionAPI> {
     logger?.info({
       joinContract: {
         contractAddress,
@@ -220,7 +225,7 @@ export class AuctionAPI implements DeployedAuctionAPI {
       contractAddress,
       contract: auctionContractInstance,
       privateStateKey: 'auctionPrivateState',
-      initialPrivateState: await AuctionAPI.getPrivateState(providers, logger),
+      initialPrivateState: await AuctionAPI.getPrivateState(providers,credential, logger),
     });
 
     logger?.trace({
@@ -229,10 +234,14 @@ export class AuctionAPI implements DeployedAuctionAPI {
       },
     });
 
-    return new AuctionAPI(deployedAuctionContract, providers, logger);
+    return new AuctionAPI(deployedAuctionContract, providers, logger, credential);
   }
 
-  private static async getPrivateState(providers: AuctionProviders, logger?: Logger): Promise<AuctionPrivateState> {
+  private static async getPrivateState(providers: AuctionProviders, credential: SDK.Domain.Credential, logger?: Logger): Promise<AuctionPrivateState> {
+
+    const jwt = credential.id;
+    logger?.info(`jwt: ${jwt}`);
+
     const existingPrivateState = await providers.privateStateProvider.get('auctionPrivateState');
     logger?.info(`Existing 'auctionPrivateState' found: ${existingPrivateState ? 'yes' : 'no'}`);
     const jwtInfo = parseJwtPayload(utils.rawJwtString());

@@ -11,8 +11,11 @@ export interface JWTVerificationResult {
 
 
 export function isSecp256k1Key(key: SDK.Domain.PublicKeyJWK): key is SDK.Domain.PublicKeyJWK & { y: string } {
+      // @ts-ignore
+
     return key.kty === "EC" &&
         key.crv?.toLowerCase().includes('secp256k1') &&
+          // @ts-ignore
         typeof key.y === 'string';
 }
 

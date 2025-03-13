@@ -15,7 +15,7 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "@hyperledger/identus-edge-agent-sdk": "file:/Users/shaileshpatil/workspace/iohk/identus-edge-agent-sdk-ts/hyperledger-identus-edge-agent-sdk-3.1.0.tgz",
+    "@hyperledger/identus-edge-agent-sdk": "file:/Users/ribo/Projects/iohk/atala-prism-wallet-sdk-ts/hyperledger-identus-sdk-6.5.1.tgz",
     "@midnight-ntwrk/auction-contract": "workspace:*",
     "pino": "^8.16.1",
     "ws": "^8.14.2"

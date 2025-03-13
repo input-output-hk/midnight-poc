@@ -71,12 +71,14 @@ export const getIssuerPublicKeyFromDid = async (did: string, logger?: Logger): P
   logger?.info(`publicKeyJwk: ${JSON.stringify(publicKeyJwk)}`);
 
   const xBigInt = BigInt('0x' + base64ToHex(publicKeyJwk.x));
+  // @ts-ignore
   const isSecp = publicKeyJwk.crv?.toLowerCase().includes('secp256k1') && publicKeyJwk.kty === "EC";
 
   let issuerPk: CurvePoint;
   if (isSecp) {
     issuerPk = {
       x: xBigInt,
+        // @ts-ignore
       y: BigInt('0x' + base64ToHex(publicKeyJwk.y))
     };
   } else {
