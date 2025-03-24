@@ -39,8 +39,8 @@ export class StandaloneConfig implements Config {
   indexerWS = 'ws://127.0.0.1:8088/api/v1/graphql/ws';
   node = 'http://127.0.0.1:9944';
   proofServer = 'http://127.0.0.1:6300';
-  issuerBaseUrl = 'http://192.168.0.20:8085';
-  mediatorBaseUrl = 'http://192.168.0.20:8080';
+  issuerBaseUrl = 'http://192.168.1.86:8085';
+  mediatorBaseUrl = 'http://192.168.1.86:8080';
   setNetworkId() {
     setNetworkId(NetworkId.Undeployed);
   }

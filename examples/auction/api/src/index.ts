@@ -264,7 +264,6 @@ async function verifyCredential(jwt: string, publicKeyJwk: SDK.Domain.PublicKeyJ
     logger?.info(`Verification failed: ${result.error}`);
     return false;
   }
-  logger?.info(`verifyCredential result : ${result}`);
   return true;
 }
 
