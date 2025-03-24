@@ -2144,10 +2144,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@midnight-ntwrk/ledger@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "@midnight-ntwrk/ledger@npm:3.0.2"
-  checksum: 10/86eef902781a2b1add6f2c43eb57599be9cbf21ecef8010cf954b981ccb9004fe78c5b14f8785e9fb964f4ec11a0d4ea6868052cf6c602b5b8cf5e43e2f984d9
+"@midnight-ntwrk/ledger@npm:^3.0.6":
+  version: 3.0.6
+  resolution: "@midnight-ntwrk/ledger@npm:3.0.6"
+  checksum: 10/644fac9ea7b47c8d0c8ea437e18e2362746701e2fedba3f6fa9a08dcea1f283c05336d9def60403e72055baa5a1e841f971a858ae3133b577a3f12518a48c753
   languageName: node
   linkType: hard
 
@@ -2252,10 +2252,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@midnight-ntwrk/onchain-runtime@npm:^0.2.2":
-  version: 0.2.2
-  resolution: "@midnight-ntwrk/onchain-runtime@npm:0.2.2"
-  checksum: 10/aca7b5a83e4ff2bc40cd439a36322454a8ace033be034da1b36a4e4dbff44693dda3515a1980107e0bd4d0de0838588f59462c9749df3d60b64a8af841b22432
+"@midnight-ntwrk/onchain-runtime@npm:^0.2.6":
+  version: 0.2.6
+  resolution: "@midnight-ntwrk/onchain-runtime@npm:0.2.6"
+  checksum: 10/6c7bf8a6d9dfd4560f1da67a0b0a2a89331eecb8110b07f7d2eab1c311cadc8f5fc42e46118649766490e534b504c0e7cad94cfdcccdbb1b09d9f69877707ebd
   languageName: node
   linkType: hard
 
@@ -2285,10 +2285,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@midnight-ntwrk/zswap@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "@midnight-ntwrk/zswap@npm:3.0.2"
-  checksum: 10/7390752550dedebde40ddc5e1dd04c6d86988e3f5e8a11d7ece010590723675ad7f4e2e071cf589e7cb6e15da1de1548f70f29016c974c6d00096224351f6648
+"@midnight-ntwrk/zswap@npm:^3.0.6":
+  version: 3.0.6
+  resolution: "@midnight-ntwrk/zswap@npm:3.0.6"
+  checksum: 10/d095b9380d1ca9f0f94286ce31bd8aaee0ee6458d8681d5b021198c1125e9e9276ebf7bd6ca5221c800ec1d8ed27909faf866268e3673d36a5126c2c9b99b595
   languageName: node
   linkType: hard
 
@@ -10690,7 +10690,7 @@ __metadata:
     "@hyperledger/identus-sdk": "file:/Users/shaileshpatil/workspace/iohk/sdk-ts/hyperledger-identus-sdk-6.5.1.tgz"
     "@midnight-ntwrk/compact-runtime": "npm:^0.7.0"
     "@midnight-ntwrk/dapp-connector-api": "npm:^1.2.1"
-    "@midnight-ntwrk/ledger": "npm:^3.0.2"
+    "@midnight-ntwrk/ledger": "npm:^3.0.6"
     "@midnight-ntwrk/midnight-js-contracts": "npm:0.2.5"
     "@midnight-ntwrk/midnight-js-fetch-zk-config-provider": "npm:0.2.5"
     "@midnight-ntwrk/midnight-js-http-client-proof-provider": "npm:0.2.5"
