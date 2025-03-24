@@ -23,6 +23,7 @@
     "@midnight-ntwrk/zswap": "^3.0.2"
   },
   "dependencies": {
+    "@hyperledger/identus-sdk": "file:/Users/shaileshpatil/workspace/iohk/sdk-ts/hyperledger-identus-sdk-6.5.1.tgz",
     "@midnight-ntwrk/compact-runtime": "^0.7.0",
     "@midnight-ntwrk/dapp-connector-api": "^1.2.1",
     "@midnight-ntwrk/ledger": "^3.0.2",

@@ -1,5 +1,5 @@
-import path from 'node:path';
 import { NetworkId, setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import path from 'node:path';
 
 export interface Config {
   readonly privateStateStoreName: string;
@@ -9,7 +9,8 @@ export interface Config {
   readonly indexerWS: string;
   readonly node: string;
   readonly proofServer: string;
-
+  readonly issuerBaseUrl: string;
+  readonly mediatorBaseUrl: string;
   setNetworkId: () => void;
 }
 
@@ -23,7 +24,8 @@ export class TestnetLocalConfig implements Config {
   indexerWS = 'ws://127.0.0.1:8088/api/v1/graphql/ws';
   node = 'http://127.0.0.1:9944';
   proofServer = 'http://127.0.0.1:6300';
-
+  issuerBaseUrl = 'http://192.168.1.86:8085';
+  mediatorBaseUrl = 'http://192.168.1.86:8080';
   setNetworkId() {
     setNetworkId(NetworkId.TestNet);
   }
@@ -37,7 +39,8 @@ export class StandaloneConfig implements Config {
   indexerWS = 'ws://127.0.0.1:8088/api/v1/graphql/ws';
   node = 'http://127.0.0.1:9944';
   proofServer = 'http://127.0.0.1:6300';
-
+  issuerBaseUrl = 'http://192.168.0.20:8085';
+  mediatorBaseUrl = 'http://192.168.0.20:8080';
   setNetworkId() {
     setNetworkId(NetworkId.Undeployed);
   }
@@ -51,7 +54,8 @@ export class TestnetRemoteConfig implements Config {
   indexerWS = 'wss://indexer.testnet.midnight.network/api/v1/graphql/ws';
   node = 'https://rpc.testnet.midnight.network';
   proofServer = 'http://127.0.0.1:6300';
-
+  issuerBaseUrl = 'http://192.168.1.86:8085';
+  mediatorBaseUrl = 'http://192.168.1.86:8080';
   setNetworkId() {
     setNetworkId(NetworkId.TestNet);
   }

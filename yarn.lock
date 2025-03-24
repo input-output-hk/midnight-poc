@@ -1589,9 +1589,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@hyperledger/identus-edge-agent-sdk@file:/Users/ribo/Projects/iohk/atala-prism-wallet-sdk-ts/hyperledger-identus-sdk-6.5.1.tgz::locator=%40midnight-ntwrk%2Fauction-api%40workspace%3Aexamples%2Fauction%2Fapi":
+"@hyperledger/identus-sdk@file:/Users/shaileshpatil/workspace/iohk/sdk-ts/hyperledger-identus-sdk-6.5.1.tgz::locator=%40midnight-ntwrk%2Fauction-api%40workspace%3Aexamples%2Fauction%2Fapi":
   version: 6.5.1
-  resolution: "@hyperledger/identus-edge-agent-sdk@file:/Users/ribo/Projects/iohk/atala-prism-wallet-sdk-ts/hyperledger-identus-sdk-6.5.1.tgz#/Users/ribo/Projects/iohk/atala-prism-wallet-sdk-ts/hyperledger-identus-sdk-6.5.1.tgz::hash=031d4e&locator=%40midnight-ntwrk%2Fauction-api%40workspace%3Aexamples%2Fauction%2Fapi"
+  resolution: "@hyperledger/identus-sdk@file:/Users/shaileshpatil/workspace/iohk/sdk-ts/hyperledger-identus-sdk-6.5.1.tgz#/Users/shaileshpatil/workspace/iohk/sdk-ts/hyperledger-identus-sdk-6.5.1.tgz::hash=4dd357&locator=%40midnight-ntwrk%2Fauction-api%40workspace%3Aexamples%2Fauction%2Fapi"
   dependencies:
     "@esbuild/darwin-arm64": "npm:0.15.18"
     "@hyperledger/identus-apollo": "npm:^1.4.5"
@@ -1627,7 +1627,49 @@ __metadata:
       optional: true
     "@rollup/rollup-linux-x64-gnu":
       optional: true
-  checksum: 10/ff168379bfcac3bad6ceeefcb615dd3783327e0f5c0ab5ab190a1b8f202cbcf02b51dbc9dbbd6e26be8a668d6d805dfce7f0e344299d2d5b7f0074e9e8205a2d
+  checksum: 10/5f1eaa7e048c570ac27494a14f8de1967b943b6c5ec7364e9e897472f894f3d0207ee21284421ed9d16eabfbb306f23a5db66a42d48ad93b81a0025a25e0d36e
+  languageName: node
+  linkType: hard
+
+"@hyperledger/identus-sdk@file:/Users/shaileshpatil/workspace/iohk/sdk-ts/hyperledger-identus-sdk-6.5.1.tgz::locator=root-workspace-0b6124%40workspace%3A.":
+  version: 6.5.1
+  resolution: "@hyperledger/identus-sdk@file:/Users/shaileshpatil/workspace/iohk/sdk-ts/hyperledger-identus-sdk-6.5.1.tgz#/Users/shaileshpatil/workspace/iohk/sdk-ts/hyperledger-identus-sdk-6.5.1.tgz::hash=4dd357&locator=root-workspace-0b6124%40workspace%3A."
+  dependencies:
+    "@esbuild/darwin-arm64": "npm:0.15.18"
+    "@hyperledger/identus-apollo": "npm:^1.4.5"
+    "@noble/ciphers": "npm:^0.6.0"
+    "@rollup/rollup-linux-x64-gnu": "npm:^4.24.0"
+    "@scure/bip39": "npm:^1.1.1"
+    "@sd-jwt/sd-jwt-vc": "npm:^0.7.1"
+    "@sinclair/typebox": "npm:^0.32.31"
+    "@stablelib/sha256": "npm:^1.0.1"
+    "@stablelib/uuid": "npm:^1.0.2"
+    bn.js: "npm:^5.2.1"
+    did-jwt: "npm:^8.0.4"
+    did-resolver: "npm:^4.1.0"
+    google-protobuf: "npm:^3.21.2"
+    hash.js: "npm:1.1.7"
+    isows: "npm:^1.0.3"
+    jsonld: "npm:^8.3.2"
+    multiformats: "npm:^9.9.0"
+    pako: "npm:^2.1.0"
+    patch-package: "npm:^8.0.0"
+    postinstall-postinstall: "npm:^2.1.0"
+  peerDependencies:
+    "@playwright/test": ^1.45.1
+    "@types/elliptic": ^6.4.16
+    buffer: ^6.0.3
+    core-js: ^3.32.2
+    elliptic: ^6.5.4
+    jsdom: ^24.1.0
+    rxjs: ^7.8.1
+    webdriverio: ^7.16.4
+  dependenciesMeta:
+    "@esbuild/darwin-arm64":
+      optional: true
+    "@rollup/rollup-linux-x64-gnu":
+      optional: true
+  checksum: 10/5f1eaa7e048c570ac27494a14f8de1967b943b6c5ec7364e9e897472f894f3d0207ee21284421ed9d16eabfbb306f23a5db66a42d48ad93b81a0025a25e0d36e
   languageName: node
   linkType: hard
 
@@ -1951,7 +1993,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@midnight-ntwrk/auction-api@workspace:examples/auction/api"
   dependencies:
-    "@hyperledger/identus-edge-agent-sdk": "file:/Users/ribo/Projects/iohk/atala-prism-wallet-sdk-ts/hyperledger-identus-sdk-6.5.1.tgz"
+    "@hyperledger/identus-sdk": "file:/Users/shaileshpatil/workspace/iohk/sdk-ts/hyperledger-identus-sdk-6.5.1.tgz"
     "@midnight-ntwrk/auction-contract": "workspace:*"
     "@types/ws": "npm:^8.5.9"
     allure-commandline: "npm:^2.28.0"
@@ -10645,6 +10687,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "root-workspace-0b6124@workspace:."
   dependencies:
+    "@hyperledger/identus-sdk": "file:/Users/shaileshpatil/workspace/iohk/sdk-ts/hyperledger-identus-sdk-6.5.1.tgz"
     "@midnight-ntwrk/compact-runtime": "npm:^0.7.0"
     "@midnight-ntwrk/dapp-connector-api": "npm:^1.2.1"
     "@midnight-ntwrk/ledger": "npm:^3.0.2"

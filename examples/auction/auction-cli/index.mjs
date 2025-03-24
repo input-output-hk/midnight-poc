@@ -1,44 +1,18 @@
 
-
-
-
-
-
-/// <reference types="@hyperledger/identus-edge-agent-sdk" />
-//Add this packages on top
-import SDK from "@hyperledger/identus-edge-agent-sdk";
+/// <reference types="@hyperledger/identus-sdk" />
+import SDK from "@hyperledger/identus-sdk";
 import {
     sha512
-} from '@noble/hashes/sha512'
+} from '@noble/hashes/sha512';
 
 import InMemory from '@pluto-encrypted/inmemory';
-
-
-import {  WalletBuilder } from '@midnight-ntwrk/wallet';
-import { NetworkId, setNetworkId, getZswapNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
-
-
-
-class StandaloneConfig {
-    privateStateStoreName = 'auction-private-state';
-    logDir = "./logs"; //path.resolve(currentDir, '..', 'logs', 'standalone', `${new Date().toISOString()}.log`);
-    zkConfigPath = "./zkpath"; //path.resolve(currentDir, '..', '..', 'contract', 'dist', 'managed', 'auction');
-    indexer = 'http://127.0.0.1:8088/api/v1/graphql';
-    indexerWS = 'ws://127.0.0.1:8088/api/v1/graphql/ws';
-    node = 'http://127.0.0.1:9944';
-    proofServer = 'http://127.0.0.1:6300';
-
-    setNetworkId() {
-        setNetworkId(NetworkId.Undeployed);
-    }
-}
 
 
 class ShortFormDIDResolverSample {
     method = "prism";
 
     async resolve(didString) {
-        const url = "http://localhost:8085/cloud-agent/dids/" + didString;
+        const url = "http://192.168.1.86:8085/cloud-agent/dids/" + didString;
         const response = await fetch(url, {
             method: "GET",
             mode: "cors",
@@ -104,48 +78,49 @@ async function verifyCondition(callback) {
 };
 
 
+
 (async () => {
 
     async function getCredential() {
         return new Promise(async (resolve, reject) => {
-            const registerPrismDid = await fetch(`http://localhost:8085/cloud-agent/did-registrar/dids`, {
+            const registerPrismDid = await fetch(`http://192.168.1.86:8085/cloud-agent/did-registrar/dids`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     "documentTemplate": {
                         "publicKeys": [
-                        {
-                          "id": "auth-1",
-                          "purpose": "authentication",
-                          "curve":"secp256k1"
-                        },
-                        {
-                          "id": "issue-1",
-                          "purpose": "assertionMethod",
-                          "curve":"secp256k1"
-                        }
-                      ],
-                      "services": []
+                            {
+                                "id": "auth-1",
+                                "purpose": "authentication",
+                                "curve": "secp256k1"
+                            },
+                            {
+                                "id": "issue-1",
+                                "purpose": "assertionMethod",
+                                "curve": "secp256k1"
+                            }
+                        ],
+                        "services": []
                     }
                 })
             });
             const prismDidResponse = await registerPrismDid.json();
             console.log('Prism DID created:', { longFormDid: prismDidResponse.longFormDid });
-        
-            const publishPrismDid = await fetch(`http://localhost:8085/cloud-agent/did-registrar/dids/${prismDidResponse.longFormDid}/publications`, {
+
+            const publishPrismDid = await fetch(`http://192.168.1.86:8085/cloud-agent/did-registrar/dids/${prismDidResponse.longFormDid}/publications`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" }
             });
             const publishResponse = await publishPrismDid.json();
             console.log('DID Published:', { operation: publishResponse.scheduledOperation });
-        
-            const createCredentialSchema = await fetch("http://localhost:8085/cloud-agent/schema-registry/schemas", {
+
+            const createCredentialSchema = await fetch("http://192.168.1.86:8085/cloud-agent/schema-registry/schemas", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    "name": "medical-prescription-schema-2b754046-32c6-42e0-b587-b28013422778",
+                    "name": "driving-license",
                     "version": "2.0.0",
-                    "description": "Medical Prescription Schema",
+                    "description": "Driving License Schema",
                     "type": "https://w3c-ccg.github.io/vc-json-schemas/schema/2.0/schema.json",
                     "author": `${publishResponse.scheduledOperation?.didRef}`,
                     "tags": [
@@ -153,43 +128,56 @@ async function verifyCondition(callback) {
                         "license"
                     ],
                     "schema": {
-                        "$id": "https://example.com/medical-prescription-1.0.0",
+                        "$id": "https://example.com/driving-license-1.0.0",
                         "$schema": "https://json-schema.org/draft/2020-12/schema",
-                        "description": "Medical Prescription ",
+                        "description": "National Id",
                         "type": "object",
                         "properties": {
-                            "patientId": {
+                            "givenName": {
+                                "type": "string"
+                            },
+                            "familyName": {
+                                "type": "string"
+                            },
+                            "birthDate": {
                                 "type": "string",
+                                "format": "date"
                             },
-                            "patientName": {
+                            "nationalId": {
                                 "type": "string"
                             },
-                            "patientFamilyName": {
-                                "type": "string"
-                            },
-                            "prescriptionId": {
-                                "type": "string"
-                            },
-                            "dateOfIssuance": {
-                                "type": "string",
-                                "format": "date-time"
+                            "publicKeyJwk": {
+                                "type": "object",
+                                "properties": {
+                                    "crv": {
+                                        "type": "string"
+                                    },
+                                    "x": {
+                                        "type": "string"
+                                    },
+                                    "y": {
+                                        "type": "string"
+                                    },
+                                    "kty": {
+                                        "type": "string"
+                                    }
+                                }
                             }
                         },
                         "required": [
-                            "patientId",
-                            "patientName",
-                            "patientFamilyName",
-                            "prescriptionId",
-                            "dateOfIssuance"
+                            "familyName",
+                            "birthDate",
+                            "nationalId",
+                            "givenName"
                         ],
-                        "additionalProperties": false
+                        "additionalProperties": true
                     }
                 })
             });
             const schemaResponse = await createCredentialSchema.json();
             console.log('Schema Created:', { schemaId: schemaResponse.id });
-        
-            const getMediatorDid = await fetch("http://localhost:8080/did", {
+
+            const getMediatorDid = await fetch("http://192.168.1.86:8080/did", {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json"
@@ -199,7 +187,7 @@ async function verifyCondition(callback) {
             console.log('Mediator DID:', {
                 did: mediatorDID
             });
-        
+
             const hashedPassword = sha512("123456")
             const apollo = new SDK.Apollo();
             const store = new SDK.Store({
@@ -219,7 +207,7 @@ async function verifyCondition(callback) {
                 pluto: new SDK.Pluto(store, apollo),
                 seed: defaultSeed
             });
-        
+
             let credential;
             let presentationId;
             agent.addListener(SDK.ListenerKey.MESSAGE, async (messages) => {
@@ -229,14 +217,22 @@ async function verifyCondition(callback) {
                             /** 
                              * DIDComm Offer Credential Message
                              * Specification: https://didcomm.org/issue-credential/3.0/offer-credential
-                             * Description: The credential offer contains a preview of the SDJWT credential and would inform
+                             * Description: The credential offer contains a preview of the JWT credential and would inform
                              * you on what fields your credential will have.
                              * Offers must be manually accepted, and this is done by creating a Credential Request and sending it to the Cloud Agent
                              */
                             console.log('Credential Offer:', message);
                             const credentialOffer = SDK.OfferCredential.fromMessage(message);
                             const requestCredential = await agent.prepareRequestCredentialWithIssuer(credentialOffer);
+
+                            // const holderPrismDIDs = await agent.pluto.getAllPrismDIDs();
+                            // console.log('+++++++++ holderPrismDIDs:', { dids: holderPrismDIDs });
+                            // const holderPrismDID = holderPrismDIDs[0];
+                            // console.log('+++++++ holderPrismDID:', { did: holderPrismDID.did.uuid });
+                            // const didDocument = await agent.castor.resolveDID(holderPrismDID.did.uuid)
+                            // console.log('+++++++ didDocument:', { didDocument: didDocument });
                             const requestMessage = requestCredential.makeMessage()
+
                             await agent.sendMessage(requestMessage);
                         } else if (message.piuri === SDK.ProtocolType.DidcommIssueCredential) {
                             /** 
@@ -247,41 +243,79 @@ async function verifyCondition(callback) {
                             console.log('Credential Issue:', message);
                             const attachment = message.attachments.at(0)
                             if (attachment) {
-                                const encodedCompactSDJWT = attachment.payload;
-                                credential = SDK.SDJWTCredential.fromJWS(encodedCompactSDJWT);
+                                const encodedCompactJWT = attachment.payload;
+                                credential = SDK.JWTCredential.fromJWS(encodedCompactJWT);
                                 return resolve(credential)
                             }
-                        } 
+                        }
                     }
                 }
             });
-        
+
             await agent.start()
-        
-            const getCredentialOffer = await fetch("http://localhost:8085/cloud-agent/issue-credentials/credential-offers/invitation", {
+            console.log('Agent started', agent.apollo);
+            const credentialOfferRequestBody = {
+                "schemaId": `http://192.168.1.86:8085/cloud-agent/schema-registry/schemas/${schemaResponse.guid}`,
+                "goalCode": "issue-vc",
+                "goal": "To Issue a Driving License Credential",
+                "issuingDID": publishResponse.scheduledOperation?.didRef,
+                "validityPeriod": 3600,
+                "automaticIssuance": true,
+                "credentialFormat": "JWT",
+                "claims": {
+                    "givenName": "Alice",
+                    "familyName": "Wonderland",
+                    "birthDate": "2000-11-13",
+                    "nationalId": "12345",
+                    "publicKeyJwk": {
+                        "crv": "secp256k1",
+                        "x": "AIK7wWytffTGGuy_DiBs3dYn26qzvWYeCQpcocLXLAs",
+                        "y": "WYdiN4nkWRcDK044UBCIJCdktqKn0OaVrnYSKeC3Tfg",
+                        "kty": "EC"
+                    }
+                }
+            }
+            const credentialOfferRequestBody1 = {
+                "schemaId": `http://192.168.1.86:8085/cloud-agent/schema-registry/schemas/${schemaResponse.guid}`,
+                "goalCode": "issue-vc",
+                "goal": "To Issue a Medical Prescription Credential",
+                "issuingDID": publishResponse.scheduledOperation?.didRef,
+                "validityPeriod": 3600,
+                "automaticIssuance": true,
+                "credentialFormat": "JWT",
+                "claims": {
+                    "patientId": "#d4aab32e1",
+                    "patientName": "Alice",
+                    "patientFamilyName": "Wonderland",
+                    "prescriptionId": "42344211134",
+                    "dateOfIssuance": "2020-11-13T20:20:39+00:00"
+                }
+            };
+            console.log('Credential Offer Request Body:', JSON.stringify(credentialOfferRequestBody, null, 2));
+            const getCredentialOffer = await fetch("http://192.168.1.86:8085/cloud-agent/issue-credentials/credential-offers/invitation", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    "goalCode": "issue-vc",
-                    "goal": "To Issue a Medical Prescription Credential",
-                    "issuingDID": publishResponse.scheduledOperation?.didRef,
-                    "validityPeriod": 3600,
-                    "automaticIssuance": true,
-                    "credentialFormat": "JWT",
-                    "claims": {
-                        "patientId": "#d4aab32e1",
-                        "patientName": "Alice",
-                        "patientFamilyName": "Wonderland",
-                        "prescriptionId": "42344211134",
-                        "dateOfBirth": "2020-11-13T20:20:39+00:00"
-                    }
-                })
+                body: JSON.stringify(credentialOfferRequestBody)
             });
+
+
+
+            console.log('Credential******* schemaResponse Offer:', { schemaId: schemaResponse.guid });
+
+
             const credentialOfferResponse = await getCredentialOffer.json();
             console.log('Credential Offer:', { invitationUrl: credentialOfferResponse.invitation.invitationUrl });
             const parsed = await agent.parseOOBInvitation(new URL(credentialOfferResponse.invitation.invitationUrl));
             await agent.acceptInvitation(parsed, 'SampleCredentialOfferOOB');
+
         })
     }
-    
+    try {
+        console.log("Starting credential issuance process...");
+        const credential = await getCredential();
+        console.log("Credential received successfully:", credential);
+    } catch (error) {
+        console.error("Error getting credential:", error);
+    }
+
 })();

@@ -1,11 +1,11 @@
-import SDK from "@hyperledger/identus-edge-agent-sdk";
+import SDK from "@hyperledger/identus-sdk";
 import { type Logger } from 'pino';
 export class ShortFormDIDResolverSample implements SDK.Domain.DIDResolver {
     method: string = "prism"
 
     async resolve(didString: string, logger?: Logger): Promise<SDK.Domain.DIDDocument> {
         logger?.info(`resolving did: ${didString}`);
-        const url = "http://192.168.1.86:8300/cloud-agent/dids/" + didString;
+        const url = "http://192.168.0.20:8085/cloud-agent/dids/" + didString;
         const response = await fetch(url, {
             "headers": {
                 "accept": "*/*",

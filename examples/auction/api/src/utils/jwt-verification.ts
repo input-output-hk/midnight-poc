@@ -1,4 +1,4 @@
-import SDK from "@hyperledger/identus-edge-agent-sdk";
+import SDK from "@hyperledger/identus-sdk";
 import { type Logger } from 'pino';
 
 export type SupportedAlgorithm = 'ES256K' | 'EdDSA';
@@ -11,11 +11,9 @@ export interface JWTVerificationResult {
 
 
 export function isSecp256k1Key(key: SDK.Domain.PublicKeyJWK): key is SDK.Domain.PublicKeyJWK & { y: string } {
-      // @ts-ignore
 
     return key.kty === "EC" &&
         key.crv?.toLowerCase().includes('secp256k1') &&
-          // @ts-ignore
         typeof key.y === 'string';
 }
 
@@ -66,6 +64,7 @@ export function parseJWT(token: string): { header: any; payload: any; signature:
     };
 }
 
+
 /**
  * Verifies a JWT using a public key in JWK format
  */
@@ -76,8 +75,9 @@ export async function verifyJWT(
 ): Promise<JWTVerificationResult> {
     try {
         logger?.info('Starting JWT verification');
-        logger?.info('Public Key JWK:', publicKeyJwk);
-
+        logger?.info('*****************************************************************');
+        logger?.info(`${jwt}`);
+        logger?.info('*****************************************************************');
         const { header, payload, signature } = parseJWT(jwt);
 
         if (isEd25519Key(publicKeyJwk) && header.alg !== 'EdDSA') {

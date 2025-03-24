@@ -4,7 +4,7 @@
  * @packageDocumentation
  */
 
-import SDK from "@hyperledger/identus-edge-agent-sdk";
+import SDK from "@hyperledger/identus-sdk";
 import {
   type AuctionPrivateState,
   Contract,
@@ -24,10 +24,6 @@ import { combineLatest, from, map, type Observable, tap } from 'rxjs';
 import type { AuctionContract, AuctionDerivedState, AuctionProviders, DeployedAuctionContract } from './common-types.js';
 import * as utils from './utils/index.js';
 import { verifyJWT } from './utils/jwt-verification.js';
-import {
-    sha512
-} from '@noble/hashes/sha512'
-import InMemory from '@pluto-encrypted/inmemory';
 
 /** @internal */
 const auctionContractInstance: AuctionContract = new Contract(witnesses);
@@ -225,7 +221,7 @@ export class AuctionAPI implements DeployedAuctionAPI {
       contractAddress,
       contract: auctionContractInstance,
       privateStateKey: 'auctionPrivateState',
-      initialPrivateState: await AuctionAPI.getPrivateState(providers,credential, logger),
+      initialPrivateState: await AuctionAPI.getPrivateState(providers, credential, logger),
     });
 
     logger?.trace({
@@ -238,39 +234,37 @@ export class AuctionAPI implements DeployedAuctionAPI {
   }
 
   private static async getPrivateState(providers: AuctionProviders, credential: SDK.Domain.Credential, logger?: Logger): Promise<AuctionPrivateState> {
-
+    //const jwt = utils.rawJwtString();
     const jwt = credential.id;
     logger?.info(`jwt: ${jwt}`);
 
     const existingPrivateState = await providers.privateStateProvider.get('auctionPrivateState');
     logger?.info(`Existing 'auctionPrivateState' found: ${existingPrivateState ? 'yes' : 'no'}`);
-    const jwtInfo = parseJwtPayload(utils.rawJwtString());
+    const jwtInfo = parseJwtPayload(jwt);
     const payload = jwtInfo.payload as VCPayload;
     logger?.info(`payload: ${payload}`);
-    const issuerPublicKey = await utils.getIssuerPublicKeyFromDid(payload.iss, logger); // Verification key of the issuer
-    const issuerPublicKeyJWK = await utils.getIssuerPublicKeyJwk(payload.iss, logger); // Verification key of the issuer
+    const issuerPublicKey = await utils.getPublicKeyFromDid(payload.iss, logger); // Verification key of the issuer CurvePoint
+    const issuerPublicKeyJWK = await utils.getIssuerPublicKeyJwk(payload.iss, logger); // Verification key of the issuer PublicKeyJWK
+    const isValid = await verifyCredential(jwt, issuerPublicKeyJWK, logger);
+    logger?.info(`Verification : ${isValid}`);
+    const subjectPublicKey = await utils.getPublicKeyFromDid(payload.sub, logger); // subject public key as CurvePoint
 
-    logger?.info(`*******issuerPublicKeyJWK: ${issuerPublicKeyJWK}`);
-    const isValid = await verifyCredential(utils.rawJwtString(), issuerPublicKeyJWK, logger);
-    logger?.info(`*********Verification : ${isValid}`);
-
-    const ownerPK = {
-      x: BigInt(0), // TODO Get from the wallet
-      y: BigInt(0) // TODO Get from the wallet
-    };
-    const privateState = existingPrivateState ?? createAuctionPrivateState(utils.randomBytes(32), utils.rawJwtString(), ownerPK);
+    // const ownerPK = {
+    //   x: BigInt(0), // TODO Get from the wallet / we are adding in credential for midnight
+    //   y: BigInt(0) // TODO Get from the wallet / we are adding in credential for midnight
+    // };
+    const privateState = existingPrivateState ?? createAuctionPrivateState(utils.randomBytes(32), jwt, subjectPublicKey);
     logger?.info(`Private state 'secret key': ${toHex(privateState.secretKey)}`);
     return privateState;
   }
 }
 async function verifyCredential(jwt: string, publicKeyJwk: SDK.Domain.PublicKeyJWK, logger?: Logger) {
-  logger?.info(`*********verifyCredential : ${jwt}`);
   const result = await verifyJWT(jwt, publicKeyJwk, logger);
   if (!result.isValid) {
     logger?.info(`Verification failed: ${result.error}`);
     return false;
   }
-  logger?.info(`*********verifyCredential result : ${result}`);
+  logger?.info(`verifyCredential result : ${result}`);
   return true;
 }
 

@@ -4,7 +4,7 @@
  * @module
  */
 
-import SDK from "@hyperledger/identus-edge-agent-sdk";
+import SDK from "@hyperledger/identus-sdk";
 import { CurvePoint } from "@midnight-ntwrk/compact-runtime";
 import { type Logger } from 'pino';
 import { ShortFormDIDResolverSample } from "./ShortFormDIDResolverSample.js";
@@ -43,11 +43,11 @@ export const resolveDid = async (did: string, logger?: Logger): Promise<SDK.Doma
 
 export const getIssuerPublicKeyJwk = async (did: string, logger?: Logger): Promise<SDK.Domain.PublicKeyJWK> => {
   const didDoc = await resolveDid(did, logger);
-  logger?.info(`didDoc: ${JSON.stringify(didDoc)}`);
+  logger?.debug(`didDoc: ${JSON.stringify(didDoc)}`);
   didDoc.coreProperties.forEach((prop, index) => {
     logger?.debug(`coreProperties[${index}] constructor name: ${prop.constructor?.name}`);
   });
-  logger?.info(`didDoc.coreProperties: ${JSON.stringify(didDoc.coreProperties)}`);
+  logger?.debug(`didDoc.coreProperties: ${JSON.stringify(didDoc.coreProperties)}`);
   const verificationMethods = didDoc.coreProperties.filter(
     (prop: SDK.Domain.DIDDocumentCoreProperty) => prop instanceof SDK.Domain.VerificationMethods
   );
@@ -66,19 +66,17 @@ export const getIssuerPublicKeyJwk = async (did: string, logger?: Logger): Promi
   return publicKeyJwk;
 };
 
-export const getIssuerPublicKeyFromDid = async (did: string, logger?: Logger): Promise<CurvePoint> => {
+export const getPublicKeyFromDid = async (did: string, logger?: Logger): Promise<CurvePoint> => {
   const publicKeyJwk = await getIssuerPublicKeyJwk(did, logger);
   logger?.info(`publicKeyJwk: ${JSON.stringify(publicKeyJwk)}`);
 
   const xBigInt = BigInt('0x' + base64ToHex(publicKeyJwk.x));
-  // @ts-ignore
   const isSecp = publicKeyJwk.crv?.toLowerCase().includes('secp256k1') && publicKeyJwk.kty === "EC";
 
   let issuerPk: CurvePoint;
   if (isSecp) {
     issuerPk = {
       x: xBigInt,
-        // @ts-ignore
       y: BigInt('0x' + base64ToHex(publicKeyJwk.y))
     };
   } else {

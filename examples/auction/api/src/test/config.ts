@@ -21,6 +21,7 @@ export class StandaloneConfig implements Config {
   indexerWS = 'ws://127.0.0.1:8088/api/v1/graphql/ws';
   node = 'http://127.0.0.1:9944';
   proofServer = 'http://127.0.0.1:6300';
+  issuerBaseUrl = 'http://192.168.1.86:8085';
 
   constructor() {
     setNetworkId(NetworkId.Undeployed);
@@ -35,7 +36,7 @@ export class TestnetRemoteConfig implements Config {
   indexerWS = 'wss://indexer.testnet.midnight.network/api/v1/graphql/ws';
   node = 'https://rpc.testnet.midnight.network';
   proofServer = 'http://127.0.0.1:6300';
-
+  issuerBaseUrl = 'http://192.168.1.86:8085';
   constructor() {
     setNetworkId(NetworkId.TestNet);
   }

@@ -41,6 +41,7 @@ export type VCPayload = {
   iss: string;
   nbf: number;
   exp: number;
+  sub: string;
 };
 
 
