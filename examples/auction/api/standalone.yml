@@ -1,14 +1,14 @@
 services:
   proof-server:
     container_name: "auction-api-proof-server"
-    image: "midnightnetwork/proof-server:3.0.2"
+    image: "midnightnetwork/proof-server:3.0.6"
     ports:
       - "6300"
     environment:
       RUST_BACKTRACE: "full"
   indexer:
     container_name: "auction-api-indexer"
-    image: "midnightnetwork/midnight-pubsub-indexer:2.2.1"
+    image: "midnightnetwork/midnight-pubsub-indexer:2.3.0"
     platform: linux/amd64
     ports:
       - "0:8088"
@@ -33,7 +33,7 @@ services:
       node:
         condition: service_started
   node:
-    image: "midnightnetwork/midnight-node:0.6.3-69581601"
+    image: "midnightnetwork/midnight-node:0.8.0"
     platform: linux/amd64
     container_name: "auction-api-node"
     ports:
