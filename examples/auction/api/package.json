@@ -15,7 +15,7 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "@hyperledger/identus-sdk": "file:/Users/shaileshpatil/workspace/iohk/sdk-ts/hyperledger-identus-sdk-6.5.1.tgz",
+    "@hyperledger/identus-sdk": "file:../infra/hyperledger-identus-sdk-6.5.1.tgz",
     "@midnight-ntwrk/auction-contract": "workspace:*",
     "pino": "^8.16.1",
     "ws": "^8.14.2"

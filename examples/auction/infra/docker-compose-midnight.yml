@@ -1,0 +1,204 @@
+---
+version: "3.8"
+
+services:
+  ##########################
+  # Mongo
+  ##########################
+  mongo:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    command: [ "--auth" ]
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin
+      - MONGO_INITDB_DATABASE=mediator
+    volumes:
+      - ./initdb.js:/docker-entrypoint-initdb.d/initdb.js
+  ##########################
+  # Mediator
+  ##########################
+
+  identus-mediator:
+    image: docker.io/hyperledgeridentus/identus-mediator:${MEDIATOR_VERSION:-latest}
+    ports:
+      - "8080:8080"
+    environment:
+      # Creates the identity:
+      # These keys are for demo purpose only for production deployments generate keys
+      # Please follow the README file for guidelines on How to generate JWK format keys
+      # KEY_AGREEMENT KEY_AUTHENTICATION are using format JOSE(JWK) OKP type base64urlsafe encoded keys
+      - KEY_AGREEMENT_D=Z6D8LduZgZ6LnrOHPrMTS6uU2u5Btsrk1SGs4fn8M7c
+      - KEY_AGREEMENT_X=Sr4SkIskjN_VdKTn0zkjYbhGTWArdUNE4j_DmUpnQGw
+      - KEY_AUTHENTICATION_D=INXCnxFEl0atLIIQYruHzGd5sUivMRyQOzu87qVerug
+      - KEY_AUTHENTICATION_X=MBjnXZxkMcoQVVL21hahWAw43RuAG-i64ipbeKKqwoA
+      - SERVICE_ENDPOINTS=${SERVICE_ENDPOINTS:-http://localhost:8080;ws://localhost:8080/ws}
+      - MONGODB_USER=admin
+      - MONGODB_PASSWORD=admin
+      - MONGODB_PROTOCOL=mongodb
+      - MONGODB_HOST=mongo
+      - MONGODB_PORT=27017
+      - MONGODB_DB_NAME=mediator
+    depends_on:
+      - "mongo"
+    healthcheck:
+      test: curl --fail http://localhost:8080/health || exit 1
+      interval: 30s
+      timeout: 8s
+      retries: 3
+      #start_period: 1m # because is not supported on CI https://github.com/hyperledger-identus/mediator/actions/runs/13416910097/job/37479904198
+      #start_interval: 6s # because is not supported on CI https://github.com/hyperledger-identus/mediator/actions/runs/13416910097/job/37479904198
+#    extra_hosts:
+#      - "host.docker.internal:host-gateway"
+
+  ##########################
+  # Database
+  ##########################
+  node-db:
+    image: postgres:13
+    environment:
+      POSTGRES_MULTIPLE_DATABASES: "node_db"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pg_data_node_db:/var/lib/postgresql/data
+      - ./postgres/init-script.sh:/docker-entrypoint-initdb.d/init-script.sh
+      - ./postgres/max_conns.sql:/docker-entrypoint-initdb.d/max_conns.sql
+    ports:
+      - "127.0.0.1:5431:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "node_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  issuer-db:
+    image: postgres:13
+    environment:
+      POSTGRES_MULTIPLE_DATABASES: "pollux,connect,agent"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pg_data_issuer_db:/var/lib/postgresql/data
+      - ./postgres/init-script.sh:/docker-entrypoint-initdb.d/init-script.sh
+      - ./postgres/max_conns.sql:/docker-entrypoint-initdb.d/max_conns.sql
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "agent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  prism-node:
+    image: ghcr.io/input-output-hk/prism-node:${PRISM_NODE_VERSION}
+    environment:
+      NODE_PSQL_HOST: node-db:5432
+      NODE_REFRESH_AND_SUBMIT_PERIOD:
+      NODE_MOVE_SCHEDULED_TO_PENDING_PERIOD:
+      NODE_WALLET_MAX_TPS:
+    depends_on:
+      node-db:
+        condition: service_healthy
+
+  vault-server:
+    image: hashicorp/vault:latest
+    #    ports:
+    #      - "8200:8200"
+    environment:
+      VAULT_ADDR: "http://0.0.0.0:8200"
+      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_DEV_ROOT_TOKEN_ID}
+    command: server -dev -dev-root-token-id=${VAULT_DEV_ROOT_TOKEN_ID}
+    cap_add:
+      - IPC_LOCK
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  cloud-agent-issuer:
+    image: ghcr.io/hyperledger/identus-cloud-agent:${AGENT_VERSION}
+    environment:
+      POLLUX_DB_HOST: issuer-db
+      POLLUX_DB_PORT: 5432
+      POLLUX_DB_NAME: pollux
+      POLLUX_DB_USER: postgres
+      POLLUX_DB_PASSWORD: postgres
+      CONNECT_DB_HOST: issuer-db
+      CONNECT_DB_PORT: 5432
+      CONNECT_DB_NAME: connect
+      CONNECT_DB_USER: postgres
+      CONNECT_DB_PASSWORD: postgres
+      AGENT_DB_HOST: issuer-db
+      AGENT_DB_PORT: 5432
+      AGENT_DB_NAME: agent
+      AGENT_DB_USER: postgres
+      AGENT_DB_PASSWORD: postgres
+      POLLUX_STATUS_LIST_REGISTRY_PUBLIC_URL: http://${DOCKERHOST}:${ISSUER_PORT}/cloud-agent
+      DIDCOMM_SERVICE_URL: http://${DOCKERHOST}:${ISSUER_PORT}/didcomm
+      REST_SERVICE_URL: http://${DOCKERHOST}:${ISSUER_PORT}/cloud-agent
+      PRISM_NODE_HOST: prism-node
+      PRISM_NODE_PORT: 50053
+      VAULT_ADDR: ${VAULT_ADDR:-http://vault-server:8200}
+      VAULT_TOKEN: ${VAULT_DEV_ROOT_TOKEN_ID:-root}
+      SECRET_STORAGE_BACKEND: postgres
+      DEV_MODE: true
+      DEFAULT_WALLET_ENABLED:
+      DEFAULT_WALLET_SEED:
+      DEFAULT_WALLET_WEBHOOK_URL:
+      DEFAULT_WALLET_WEBHOOK_API_KEY:
+      DEFAULT_WALLET_AUTH_API_KEY:
+      GLOBAL_WEBHOOK_URL:
+      GLOBAL_WEBHOOK_API_KEY:
+      WEBHOOK_PARALLELISM:
+      ADMIN_TOKEN:
+      API_KEY_SALT:
+      API_KEY_ENABLED: ${ISSUER_API_KEY_ENABLED:-false}
+      API_KEY_AUTHENTICATE_AS_DEFAULT_USER: false
+      API_KEY_AUTO_PROVISIONING:
+    depends_on:
+      issuer-db:
+        condition: service_healthy
+      prism-node:
+        condition: service_started
+      vault-server:
+        condition: service_healthy
+    healthcheck:
+      test:
+        ["CMD", "curl", "-f", "http://cloud-agent-issuer:8085/_system/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  swagger-ui-issuer:
+    image: swaggerapi/swagger-ui:v5.1.0
+    environment:
+      - 'URLS=[
+        { name: "Cloud Agent", url: "/docs/cloud-agent/api/docs.yaml" }
+        ]'
+
+  apisix-issuer:
+    image: apache/apisix:2.15.0-alpine
+    volumes:
+      - ./apisix/conf/apisix-issuer.yaml:/usr/local/apisix/conf/apisix.yaml:ro
+      - ./apisix/conf/config.yaml:/usr/local/apisix/conf/config.yaml:ro
+    ports:
+      - "${ISSUER_PORT}:9080/tcp"
+    depends_on:
+      - cloud-agent-issuer
+      - swagger-ui-issuer
+
+volumes:
+  pg_data_node_db:
+  pg_data_issuer_db:
+  #  pgadmin:
+  # Temporary commit network setting due to e2e CI bug
+  # to be enabled later after debugging
+  #networks:
+  #  default:
+  #    name: ${NETWORK}
