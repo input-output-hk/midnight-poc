@@ -47,7 +47,7 @@ describe('E2E Auction CLI', () => {
         },
       },
       {
-        input: 'Deploy a new bulletin board contract',
+        input: 'Deploy a new auction contract',
         answer: '1',
         condition: (nextInput: string) => {
           return nextInput.includes('deployContract');

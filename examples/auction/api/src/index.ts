@@ -1,20 +1,20 @@
 /**
- * Provides types and utilities for working with bulletin board contracts.
+ * Provides types and utilities for working with auction contracts.
  *
  * @packageDocumentation
  */
 
 import SDK from "@hyperledger/identus-sdk";
 import {
-  type AuctionPrivateState,
-  Contract,
-  createAuctionPrivateState,
-  ledger,
-  parseJwtPayload,
-  pureCircuits,
-  STATE,
-  VCPayload,
-  witnesses,
+    type AuctionPrivateState,
+    Contract,
+    createAuctionPrivateState,
+    ledger,
+    parseJwtPayload,
+    pureCircuits,
+    STATE,
+    VCPayload,
+    witnesses,
 } from '@midnight-ntwrk/auction-contract';
 import { type ContractAddress } from '@midnight-ntwrk/compact-runtime';
 import { deployContract, findDeployedContract } from '@midnight-ntwrk/midnight-js-contracts';
@@ -29,7 +29,7 @@ import { verifyJWT } from './utils/jwt-verification.js';
 const auctionContractInstance: AuctionContract = new Contract(witnesses);
 
 /**
- * An API for a deployed bulletin board.
+ * An API for a deployed auction.
  */
 export interface DeployedAuctionAPI {
   readonly deployedContractAddress: ContractAddress;
@@ -40,7 +40,7 @@ export interface DeployedAuctionAPI {
 }
 
 /**
- * Provides an implementation of {@link DeployedAuctionAPI} by adapting a deployed bulletin board
+ * Provides an implementation of {@link DeployedAuctionAPI} by adapting a deployed auction
  * contract.
  *
  * @remarks
@@ -52,7 +52,7 @@ export interface DeployedAuctionAPI {
  *
  * In the future, Midnight.js will provide a private state provider that supports private state storage
  * keyed by contract address. This will remove the current workaround of sharing private state across
- * the deployed bulletin board contracts, and allows for a unique secret key to be generated for each bulletin
+ * the deployed auction contracts, and allows for a unique secret key to be generated for each bulletin
  * board that the user interacts with.
  */
 // TODO: Update AuctionAPI to use contract level private state storage.
@@ -83,7 +83,7 @@ export class AuctionAPI implements DeployedAuctionAPI {
           ),
         ),
         // ...private state...
-        //    since the private state of the bulletin board application never changes, we can query the
+        //    since the private state of the auction application never changes, we can query the
         //    private state once and always use the same value with `combineLatest`. In applications
         //    where the private state is expected to change, we would need to make this an `Observable`.
         from(providers.privateStateProvider.get('auctionPrivateState' as PrivateStates) as Promise<AuctionPrivateState>),
@@ -121,12 +121,12 @@ export class AuctionAPI implements DeployedAuctionAPI {
   readonly state$: Observable<AuctionDerivedState>;
 
   /**
-   * Attempts to post a given message to the bulletin board.
+   * Attempts to post a given message to the auction.
    *
    * @param message The message to post.
    *
    * @remarks
-   * This method can fail during local circuit execution if the bulletin board is currently occupied.
+   * This method can fail during local circuit execution if the auction is currently occupied.
    */
   async placeBid(bid: bigint): Promise<void> {
     this.logger?.info(`placing bid: ${bid}`);
@@ -148,10 +148,10 @@ export class AuctionAPI implements DeployedAuctionAPI {
   }
 
   /**
-   * Attempts to take down any currently posted message on the bulletin board.
+   * Attempts to take down any currently posted message on the auction.
    *
    * @remarks
-   * This method can fail during local circuit execution if the bulletin board is currently vacant,
+   * This method can fail during local circuit execution if the auction is currently vacant,
    * or if the currently posted message isn't owned by the poster computed from the current private
    * state.
    */
@@ -173,9 +173,9 @@ export class AuctionAPI implements DeployedAuctionAPI {
   }
 
   /**
-   * Deploys a new bulletin board contract to the network.
+   * Deploys a new auction contract to the network.
    *
-   * @param providers The bulletin board providers.
+   * @param providers The auction providers.
    * @param logger An optional 'pino' logger to use for logging.
    * @returns A `Promise` that resolves with a {@link AuctionAPI} instance that manages the newly deployed
    * {@link DeployedAuctionContract}; or rejects with a deployment error.
@@ -202,10 +202,10 @@ export class AuctionAPI implements DeployedAuctionAPI {
   }
 
   /**
-   * Finds an already deployed bulletin board contract on the network, and joins it.
+   * Finds an already deployed auction contract on the network, and joins it.
    *
-   * @param providers The bulletin board providers.
-   * @param contractAddress The contract address of the deployed bulletin board contract to search for and join.
+   * @param providers The auction providers.
+   * @param contractAddress The contract address of the deployed auction contract to search for and join.
    * @param logger An optional 'pino' logger to use for logging.
    * @returns A `Promise` that resolves with a {@link AuctionAPI} instance that manages the joined
    * {@link DeployedAuctionContract}; or rejects with an error.
