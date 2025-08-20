@@ -21,7 +21,7 @@ import { deployContract, findDeployedContract } from '@midnight-ntwrk/midnight-j
 import { toHex } from '@midnight-ntwrk/midnight-js-utils';
 import { type Logger } from 'pino';
 import { combineLatest, from, map, type Observable, tap } from 'rxjs';
-import type { AuctionContract, AuctionDerivedState, AuctionProviders, DeployedAuctionContract } from './common-types.js';
+import type { AuctionContract, AuctionDerivedState, AuctionProviders, DeployedAuctionContract, PrivateStates } from './common-types.js';
 import * as utils from './utils/index.js';
 import { verifyJWT } from './utils/jwt-verification.js';
 
@@ -75,8 +75,8 @@ export class AuctionAPI implements DeployedAuctionAPI {
               ledgerStateChanged: {
                 ledgerState: {
                   ...ledgerState,
-                  state: ledgerState.auctionState === STATE.concluded ? 'concluded' : 'opened',
-                  seller: toHex(ledgerState.itemSeller),
+                  state: ledgerState.auction_state === STATE.concluded ? 'concluded' : 'opened',
+                  seller: toHex(ledgerState.item_seller),
                 },
               },
             }),
@@ -86,7 +86,7 @@ export class AuctionAPI implements DeployedAuctionAPI {
         //    since the private state of the bulletin board application never changes, we can query the
         //    private state once and always use the same value with `combineLatest`. In applications
         //    where the private state is expected to change, we would need to make this an `Observable`.
-        from(providers.privateStateProvider.get('auctionPrivateState') as Promise<AuctionPrivateState>),
+        from(providers.privateStateProvider.get('auctionPrivateState' as PrivateStates) as Promise<AuctionPrivateState>),
       ],
       // ...and combine them to produce the required derived state.
       (ledgerState, privateState) => {
@@ -95,15 +95,15 @@ export class AuctionAPI implements DeployedAuctionAPI {
         );
 
         return {
-          auction_state: ledgerState.auctionState,
-          item_description: ledgerState.itemDescription,
-          minimum_bid: ledgerState.minimumBid,
-          bid_increment: ledgerState.bidIncrement,
-          current_bid: ledgerState.currentBid.value,
-          current_bidder: ledgerState.currentBidder.value,
-          reserve_price: ledgerState.reservePrice,
-          item_seller: ledgerState.itemSeller,
-          isSeller: toHex(ledgerState.itemSeller) === toHex(hashedSecretKey),
+          auction_state: ledgerState.auction_state,
+          item_description: ledgerState.item_description,
+          minimum_bid: ledgerState.minimum_bid,
+          bid_increment: ledgerState.bid_increment,
+          current_bid: ledgerState.current_bid.value,
+          current_bidder: ledgerState.current_bidder.value,
+          reserve_price: ledgerState.reserve_price,
+          item_seller: ledgerState.item_seller,
+          isSeller: toHex(ledgerState.item_seller) === toHex(hashedSecretKey),
         };
       },
     );
@@ -186,7 +186,7 @@ export class AuctionAPI implements DeployedAuctionAPI {
     // EXERCISE 5: FILL IN THE CORRECT ARGUMENTS TO deployContract
     const deployedAuctionContract = await deployContract(providers, {
       // EXERCISE ANSWER
-      privateStateKey: 'auctionPrivateState', // EXERCISE ANSWER
+      privateStateId: 'auctionPrivateState', // EXERCISE ANSWER
       contract: auctionContractInstance,
       initialPrivateState: await AuctionAPI.getPrivateState(providers, credential, logger),
       args: args
@@ -220,7 +220,7 @@ export class AuctionAPI implements DeployedAuctionAPI {
     const deployedAuctionContract = await findDeployedContract(providers, {
       contractAddress,
       contract: auctionContractInstance,
-      privateStateKey: 'auctionPrivateState',
+      privateStateId: 'auctionPrivateState',
       initialPrivateState: await AuctionAPI.getPrivateState(providers, credential, logger),
     });
 
@@ -238,7 +238,7 @@ export class AuctionAPI implements DeployedAuctionAPI {
     const jwt = credential.id;
     logger?.info(`jwt: ${jwt}`);
 
-    const existingPrivateState = await providers.privateStateProvider.get('auctionPrivateState');
+    const existingPrivateState = await providers.privateStateProvider.get('auctionPrivateState' as PrivateStates);
     logger?.info(`Existing 'auctionPrivateState' found: ${existingPrivateState ? 'yes' : 'no'}`);
     const jwtInfo = parseJwtPayload(jwt);
     const payload = jwtInfo.payload as VCPayload;

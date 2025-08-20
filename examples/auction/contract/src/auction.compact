@@ -1,4 +1,4 @@
-include "std";
+import CompactStandardLibrary;
 
 export enum STATE { opened, concluded }
 
@@ -21,17 +21,16 @@ export struct CompactCredential {
 }
 
 constructor(_item_description: Opaque<"string">, _minimum_bid: Uint<32>, _bid_increment: Uint<32>, _reserve_price: Uint<32>) {
-    assert _reserve_price >= _minimum_bid 
-        "The reserve price should be equal to or greater than the minimum bid";
+    assert (_reserve_price >= _minimum_bid, "The reserve price should be equal to or greater than the minimum bid");
     
     auction_state = STATE.opened;
     current_bid = none<Uint<32>>();
     current_bidder = none<Bytes<32>>();
-    item_description = _item_description;
-    minimum_bid = _minimum_bid;    
-    bid_increment = _bid_increment;
+    item_description = disclose(_item_description);
+    minimum_bid = disclose(_minimum_bid);    
+    bid_increment = disclose(_bid_increment);
     // Q: How can we keep this next one private???
-    reserve_price = _reserve_price;
+    reserve_price = disclose(_reserve_price);
     item_seller = disclose(public_key(local_secret_key()));
 }
 
@@ -40,21 +39,17 @@ witness local_secret_key(): Bytes<32>;
 witness get_credential_from_jwt(): CompactCredential;
 
 export circuit place_bid(new_bid: Uint<32>, currentTime: Uint<64>): [] {
-    assert auction_state == STATE.opened
-        "Attempted to bid on a concluded auction";
+    assert (auction_state == STATE.opened, "Attempted to bid on a concluded auction");
 
     const bidder_pub_key = public_key(local_secret_key());
     const credential = get_credential_from_jwt();
     const birthDateFromVC = credential.birthDate;
-    assert item_seller != bidder_pub_key
-        "Can't place a bid as the auction seller";
+    assert (item_seller != bidder_pub_key, "Can't place a bid as the auction seller");
 
     if (current_bid.is_some) {
-        assert new_bid >= (current_bid.value + bid_increment)
-            "The bid should be equal to or greater than the 'current bid + bid increment'";
+        assert (new_bid >= (current_bid.value + bid_increment), "The bid should be equal to or greater than the 'current bid + bid increment'");
     } else {
-        assert new_bid >= minimum_bid
-            "The bid should be equal to or greater than the minimum bid";
+        assert (new_bid >= minimum_bid, "The bid should be equal to or greater than the minimum bid");
     }
     
     // Q: How will this be implemented actually??
@@ -62,28 +57,25 @@ export circuit place_bid(new_bid: Uint<32>, currentTime: Uint<64>): [] {
     //    "The bidder's age must be equal to or greater than 18"
 
 
-    current_bid = some<Uint<32>>(new_bid);
+    current_bid = disclose(some<Uint<32>>(new_bid));
     current_bidder = disclose(some<Bytes<32>>(bidder_pub_key));
 
     // Q: How do we implement this knowing tht the reserve price should be private?
-    if (new_bid >= reserve_price)
+    if (disclose(new_bid) >= reserve_price)
         auction_state = STATE.concluded;
 }
 
 export circuit conclude_auction(): [] {
-    assert auction_state == STATE.opened
-        "Attempted to conclude an auction that has already been concluded";
+    assert (auction_state == STATE.opened, "Attempted to conclude an auction that has already been concluded");
 
-    assert current_bid.is_some
-        "Failed to conclude auction because no bids were placed";
+    assert (current_bid.is_some, "Failed to conclude auction because no bids were placed");
 
-    assert item_seller == public_key(local_secret_key())
-        "Only the seller of the item can conclude the auction";
+    assert (item_seller == public_key(local_secret_key()), "Only the seller of the item can conclude the auction");
     
     auction_state = STATE.concluded;
 }
 
 export circuit public_key(sk: Bytes<32>): Bytes<32> {
-    return persistent_hash<Vector<2, Bytes<32>>>([pad(32, "auction:participant:pk"), sk]);
+    return persistentHash<Vector<2, Bytes<32>>>([pad(32, "auction:participant:pk"), sk]);
 }
 

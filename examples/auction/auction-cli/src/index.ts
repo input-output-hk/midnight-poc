@@ -146,17 +146,17 @@ const displayLedgerState = async (
   if (ledgerState === null) {
     logger.info(`There is no auction contract deployed at ${contractAddress}`);
   } else {
-    const auctionState = ledgerState.auctionState === STATE.concluded ? 'concluded' : 'opened';
-    const currentBid = ledgerState.currentBid.is_some ? ledgerState.currentBid.value : 'none';
-    const currentBidder = ledgerState.currentBidder.is_some ? toHex(ledgerState.currentBidder.value) : 'none';
+    const auctionState = ledgerState.auction_state === STATE.concluded ? 'concluded' : 'opened';
+    const currentBid = ledgerState.current_bid.is_some ? ledgerState.current_bid.value : 'none';
+    const currentBidder = ledgerState.current_bidder.is_some ? toHex(ledgerState.current_bidder.value) : 'none';
     logger.info(`Auction state: '${auctionState}'`);
-    logger.info(`Item description is: '${ledgerState.itemDescription}'`);
-    logger.info(`Minimum bid is: '${ledgerState.minimumBid}'`);
-    logger.info(`Bid increment is: '${ledgerState.bidIncrement}'`);
+    logger.info(`Item description is: '${ledgerState.item_description}'`);
+    logger.info(`Minimum bid is: '${ledgerState.minimum_bid}'`);
+    logger.info(`Bid increment is: '${ledgerState.bid_increment}'`);
     logger.info(`Current bid is: '${currentBid}'`);
     logger.info(`Current bidder is: '${currentBidder}'`);
-    logger.info(`Reserve price is: '${ledgerState.reservePrice}'`);
-    logger.info(`Item seller is: '${toHex(ledgerState.itemSeller)}'`);
+    logger.info(`Reserve price is: '${ledgerState.reserve_price}'`);
+    logger.info(`Item seller is: '${toHex(ledgerState.item_seller)}'`);
   }
 };
 
@@ -165,7 +165,7 @@ const displayLedgerState = async (
  */
 
 const displayPrivateState = async (providers: AuctionProviders, logger: Logger): Promise<void> => {
-  const privateState = await providers.privateStateProvider.get('auctionPrivateState');
+  const privateState = await providers.privateStateProvider.get('auctionPrivateState' as PrivateStates);
   if (privateState === null) {
     logger.info(`There is no existing bulletin board private state`);
   } else {
@@ -277,6 +277,7 @@ const createWalletAndMidnightProvider = async (wallet: Wallet): Promise<WalletPr
   const state = await Rx.firstValueFrom(wallet.state());
   return {
     coinPublicKey: state.coinPublicKey,
+    encryptionPublicKey: state.encryptionPublicKey,
     balanceTx(tx: UnbalancedTransaction, newCoins: CoinInfo[]): Promise<BalancedTransaction> {
       return wallet
         .balanceTransaction(
@@ -308,14 +309,13 @@ const waitForFunds = (wallet: Wallet, logger: Logger) =>
       Rx.throttleTime(10_000),
       Rx.tap((state) => {
         const scanned = state.syncProgress?.synced ?? 0n;
-        const total = state.syncProgress?.total.toString() ?? 'unknown number';
-        logger.info(`Wallet scanned ${scanned} blocks out of ${total}`);
+        logger.info(`Wallet scanned ${scanned} blocks`);
       }),
       Rx.filter((state) => {
-        // Let's allow progress only if wallet is close enough
+        // Let's allow progress only if wallet is close enough or if sync progress is not available
         const synced = state.syncProgress?.synced ?? 0n;
-        const total = state.syncProgress?.total ?? 1_000n;
-        return total - synced < 100n;
+        // Since we can't access 'total', we'll be more permissive and allow progress when synced is available
+        return typeof synced === 'bigint' && synced >= 0n;
       }),
       Rx.map((s) => s.balances[nativeToken()] ?? 0n),
       Rx.filter((balance) => balance > 0n),

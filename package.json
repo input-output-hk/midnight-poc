@@ -3,7 +3,6 @@
   "workspaces": [
     "compact",
     "examples/*",
-    "examples/bboard/*",
     "examples/auction/*"
   ],
   "scripts": {
@@ -19,32 +18,34 @@
     "bboard-ui": "turbo run start --filter=bboard-ui"
   },
   "resolutions": {
-    "@midnight-ntwrk/compact-runtime/@midnight-ntwrk/onchain-runtime": "^0.2.6",
-    "@midnight-ntwrk/zswap": "^3.0.6"
+    "@midnight-ntwrk/compact-runtime/@midnight-ntwrk/onchain-runtime": "^0.3.0",
+    "@midnight-ntwrk/zswap": "^4.0.0"
   },
   "dependencies": {
-    "@hyperledger/identus-sdk": "file:/Users/shaileshpatil/workspace/iohk/sdk-ts/hyperledger-identus-sdk-6.5.1.tgz",
-    "@midnight-ntwrk/compact-runtime": "^0.7.0",
+    "@hyperledger/identus-sdk": "file:examples/auction/hyperledger-identus-sdk-6.5.1.tgz",
+    "@midnight-ntwrk/compact-runtime": "^0.8.1",
     "@midnight-ntwrk/dapp-connector-api": "^1.2.3",
-    "@midnight-ntwrk/ledger": "^3.0.6",
-    "@midnight-ntwrk/midnight-js-contracts": "0.2.5",
+    "@midnight-ntwrk/ledger": "^4.0.0",
+    "@midnight-ntwrk/midnight-js-contracts": "2.0.2",
     "@midnight-ntwrk/midnight-js-fetch-zk-config-provider": "0.2.5",
-    "@midnight-ntwrk/midnight-js-http-client-proof-provider": "0.2.5",
-    "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "0.2.5",
-    "@midnight-ntwrk/midnight-js-level-private-state-provider": "0.2.5",
+    "@midnight-ntwrk/midnight-js-http-client-proof-provider": "2.0.2",
+    "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "2.0.2",
+    "@midnight-ntwrk/midnight-js-level-private-state-provider": "2.0.2",
     "@midnight-ntwrk/midnight-js-network-id": "0.2.5",
-    "@midnight-ntwrk/midnight-js-node-zk-config-provider": "0.2.5",
-    "@midnight-ntwrk/midnight-js-types": "0.2.5",
+    "@midnight-ntwrk/midnight-js-node-zk-config-provider": "2.0.2",
+    "@midnight-ntwrk/midnight-js-types": "2.0.2",
     "@midnight-ntwrk/midnight-js-utils": "0.2.5",
-    "@midnight-ntwrk/wallet": "^3.7.5",
-    "@midnight-ntwrk/wallet-api": "^3.5.0",
+    "@midnight-ntwrk/wallet": "5.0.0",
+    "@midnight-ntwrk/wallet-api": "5.0.0",
+    "@midnight-ntwrk/zswap": "^4.0.0",
     "@types/jsonwebtoken": "^9.0.9",
     "fp-ts": "^2.16.1",
     "io-ts": "^2.2.20",
     "jsonwebtoken": "^9.0.2",
-    "pino": "^8.16.0",
-    "pino-pretty": "^10.2.3",
-    "rxjs": "^7.8.1"
+    "pino": "^9.7.0",
+    "pino-pretty": "^13.0.0",
+    "rxjs": "^7.8.1",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@types/jest": "^29.5.6",

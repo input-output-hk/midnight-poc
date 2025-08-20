@@ -24,12 +24,7 @@ import { type MidnightProviders } from '@midnight-ntwrk/midnight-js-types';
  *
  * @public
  */
-export type PrivateStates = {
-  /**
-   * Key used to provide the private state for {@link AuctionContract} deployments.
-   */
-  readonly auctionPrivateState: AuctionPrivateState;
-};
+export type PrivateStates = 'auctionPrivateState';
 
 /**
  * Represents a bulletin board contract and its private state.
@@ -57,7 +52,7 @@ export type AuctionProviders = MidnightProviders<AuctionCircuitKeys, PrivateStat
  *
  * @public
  */
-export type DeployedAuctionContract = FoundContract<AuctionPrivateState, AuctionContract>;
+export type DeployedAuctionContract = FoundContract<AuctionContract>;
 
 /**
  * A type that represents the derived combination of public (or ledger), and private state.
